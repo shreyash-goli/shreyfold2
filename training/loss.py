@@ -68,10 +68,11 @@ def weighted_rigid_align(
         except Exception:
             R = torch.eye(3, device=x.device, dtype=torch.float32).unsqueeze(0).expand(H.shape[0], -1, -1)
 
-    R = R.to(x.dtype)
-    # Apply rotation + translate to ground truth frame
+    # Detach only R (stop-grad on alignment), not on x itself
+    R = R.to(x.dtype).detach()
+    # Rotate predicted coords into gt frame; gradient flows through x_c (-> x_pred)
     x_aligned = (x_c @ R.transpose(-2, -1)) + mu_gt.unsqueeze(-2)
-    return x_aligned.detach()
+    return x_aligned
 
 
 # ---------------------------------------------------------------------------
