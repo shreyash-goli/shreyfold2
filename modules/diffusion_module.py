@@ -694,11 +694,8 @@ class DiffusionModule(nn.Module):
             # Optionally add extra noise for stochastic sampling
             if gamma > 0 and i < n_steps - 1:
                 sig_hat = sig_cur * (1.0 + gamma)
-                noise = torch.randn_like(x) * (sig_hat**2 - sig_cur**2).sqrt()
-                x = x + noise[:, None] if noise.dim() == 1 else (
-                    x + noise.view(B, 1, 1) * (sig_hat**2 - sig_cur**2).sqrt().view(B, 1, 1)
-                )
-                x = x + torch.randn_like(x) * ((sig_hat.view(B,1,1)**2 - sig_cur.view(B,1,1)**2).clamp(min=0).sqrt())
+                extra_noise_std = (sig_hat**2 - sig_cur**2).clamp(min=0).sqrt()
+                x = x + torch.randn_like(x) * extra_noise_std.view(B, 1, 1)
                 sig_cur = sig_hat
 
             # Denoise
